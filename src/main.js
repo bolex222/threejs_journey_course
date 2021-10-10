@@ -10,7 +10,7 @@ const scene = new THREE.Scene()
 // camera
 const camera = new THREE.PerspectiveCamera(75, screenSize.width / screenSize.height)
 scene.add(camera)
-camera.position.set(0, 0, 4)
+camera.position.set(4, 4, 4)
 
 // Axes helper
 const axesHelper  = new THREE.AxesHelper()
@@ -34,8 +34,10 @@ Array(3).fill(undefined).forEach((value, index) => {
 })
 
 allBoxes.forEach(elem => {
-  elem.position.x = elem.position.x - allBoxes.length +1
+  elem.position.x += -allBoxes.length +1
 })
+
+camera.lookAt(threeBoxGroup.position)
 
 // create renderer
 const renderer = new THREE.WebGLRenderer({
