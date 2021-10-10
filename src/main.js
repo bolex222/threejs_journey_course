@@ -4,23 +4,38 @@ import * as THREE from 'three'
 const renderContextCanvas = document.getElementById('render_context')
 const screenSize = { width: window.innerWidth, height: window.innerHeight }
 
-
 // create Scene
 const scene = new THREE.Scene()
-
-// create BOX
-const geometry = new THREE.BoxGeometry(1, 1, 1)
-const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
-// mesh.rotation.x = 2
-// mesh.rotation.y = 2
 
 // camera
 const camera = new THREE.PerspectiveCamera(75, screenSize.width / screenSize.height)
 scene.add(camera)
-camera.position.z = 2
+camera.position.set(0, 0, 4)
 
+// Axes helper
+const axesHelper  = new THREE.AxesHelper()
+scene.add(axesHelper)
+
+//create a group
+const threeBoxGroup = new THREE.Group()
+scene.add(threeBoxGroup)
+
+//create 3 box for the group above
+const allBoxes = []
+
+Array(3).fill(undefined).forEach((value, index) => {
+  const box = new THREE.Mesh(
+    new THREE.BoxGeometry(1, 1, 1),
+    new THREE.MeshBasicMaterial({color: 0xff0000})
+  )
+  box.position.x =  index * 2
+  allBoxes.push(box)
+  threeBoxGroup.add(box)
+})
+
+allBoxes.forEach(elem => {
+  elem.position.x = elem.position.x - allBoxes.length +1
+})
 
 // create renderer
 const renderer = new THREE.WebGLRenderer({
@@ -29,7 +44,7 @@ const renderer = new THREE.WebGLRenderer({
 renderer.setSize(screenSize.width, screenSize.height)
 
 const interval = setInterval(() => {
-  mesh.rotation.y += .02
+  threeBoxGroup.rotation.y += .02
   renderer.render(scene, camera)
 }, 2.5)
 
