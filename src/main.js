@@ -1,5 +1,6 @@
 import './style.css'
 import * as THREE from 'three'
+import gsap from 'gsap'
 
 const renderContextCanvas = document.getElementById('render_context')
 const screenSize = { width: window.innerWidth, height: window.innerHeight }
@@ -13,7 +14,7 @@ scene.add(camera)
 camera.position.set(4, 4, 4)
 
 // Axes helper
-const axesHelper  = new THREE.AxesHelper()
+const axesHelper = new THREE.AxesHelper()
 scene.add(axesHelper)
 
 //create a group
@@ -26,15 +27,15 @@ const allBoxes = []
 Array(3).fill(undefined).forEach((value, index) => {
   const box = new THREE.Mesh(
     new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshBasicMaterial({color: 0xff0000})
+    new THREE.MeshBasicMaterial({ color: 0xff0000 })
   )
-  box.position.x =  index * 2
+  box.position.x = index * 2
   allBoxes.push(box)
   threeBoxGroup.add(box)
 })
 
 allBoxes.forEach(elem => {
-  elem.position.x += -allBoxes.length +1
+  elem.position.x += -allBoxes.length + 1
 })
 
 camera.lookAt(threeBoxGroup.position)
@@ -45,12 +46,6 @@ const renderer = new THREE.WebGLRenderer({
 })
 renderer.setSize(screenSize.width, screenSize.height)
 
-const interval = setInterval(() => {
-  threeBoxGroup.rotation.y += .02
-  renderer.render(scene, camera)
-}, 2.5)
-
-
 const handleScreenResize = () => {
   screenSize.height = window.innerHeight
   screenSize.width = window.innerWidth
@@ -60,3 +55,25 @@ const handleScreenResize = () => {
 }
 
 window.addEventListener('resize', handleScreenResize)
+
+renderer.render(scene, camera)
+
+
+// ANIMATION :
+/**
+ * Animate
+ */
+
+const clock = new THREE.Clock()
+
+gsap.to(camera.position, {
+  y: 25,
+  z: 25, duration: 1, ease: 'power1.out', repeat: -1, yoyo: true })
+
+const tick = () => {
+  camera.lookAt(threeBoxGroup.position)
+  renderer.render(scene, camera)
+  window.requestAnimationFrame(tick)
+}
+
+tick()
