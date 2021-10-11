@@ -1,7 +1,6 @@
 import './style.css'
 import * as THREE from 'three'
-import gsap from 'gsap'
-
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 const renderContextCanvas = document.getElementById('render_context')
 const screenSize = { width: window.innerWidth, height: window.innerHeight }
 
@@ -9,9 +8,20 @@ const screenSize = { width: window.innerWidth, height: window.innerHeight }
 const scene = new THREE.Scene()
 
 // camera
-const camera = new THREE.PerspectiveCamera(75, screenSize.width / screenSize.height)
+const aspectRatio = screenSize.width / screenSize.height
+const camera = new THREE.PerspectiveCamera(75, aspectRatio)
+// const camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1)
 scene.add(camera)
-camera.position.set(4, 4, 4)
+camera.position.set(0, 0, 4)
+
+// Controls
+
+const controls = new OrbitControls(camera, renderContextCanvas)
+controls.enableDamping = true
+// controls.target.y = 1
+// controls.update()
+
+
 
 // Axes helper
 const axesHelper = new THREE.AxesHelper()
@@ -63,17 +73,38 @@ renderer.render(scene, camera)
 /**
  * Animate
  */
-
 const clock = new THREE.Clock()
 
-gsap.to(camera.position, {
-  y: 25,
-  z: 25, duration: 1, ease: 'power1.out', repeat: -1, yoyo: true })
-
 const tick = () => {
-  camera.lookAt(threeBoxGroup.position)
+  controls.update()
   renderer.render(scene, camera)
   window.requestAnimationFrame(tick)
 }
-
 tick()
+
+
+
+// Move cube from mouse
+
+/**
+ *
+ * @param {MouseEvent}event
+ */
+
+const cursor = {
+  x: 0,
+  y: 0
+}
+const onMouseMove = event => {
+  cursor.x = event.clientX / screenSize.width - 0.5
+  cursor.y = event.clientY / screenSize.height - 0.5
+
+  camera.position.x = Math.sin(-cursor.x * 2 * Math.PI) * 4
+  camera.position.z = Math.cos(-cursor.x * 2 * Math.PI) * 4
+  camera.position.y = cursor.y * 10
+
+  //camera.position.set(-cursor.x * (2*Math.PI*camera.position.z), cursor.y * (2*Math.PI*camera.position.z))
+  camera.lookAt(threeBoxGroup.position)
+}
+
+//renderContextCanvas.addEventListener('mousemove', onMouseMove)
