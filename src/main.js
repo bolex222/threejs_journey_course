@@ -67,11 +67,11 @@ const handleScreenResize = () => {
 }
 
 const handleDblClick = () => {
-  const fullScreenElement = document.fullscreenElement || document.webkitFullScreenElement
+  const fullScreenElement = document.fullscreenElement || document.webkitFullscreenElement
 
-  if (document.fullscreenElement) {
+  if (fullScreenElement) {
     if (document.exitFullscreen) {
-      document.exitFullscreen()
+      document.exitFullscreen().then()
     } else if (document.webkitExitFullscreen) {
       document.webkitExitFullscreen()
     }
