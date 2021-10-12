@@ -55,6 +55,7 @@ const renderer = new THREE.WebGLRenderer({
   canvas: renderContextCanvas
 })
 renderer.setSize(screenSize.width, screenSize.height)
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
 const handleScreenResize = () => {
   screenSize.height = window.innerHeight
@@ -62,8 +63,27 @@ const handleScreenResize = () => {
   camera.aspect = screenSize.width / screenSize.height
   camera.updateProjectionMatrix()
   renderer.setSize(screenSize.width, screenSize.height)
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 }
 
+const handleDblClick = () => {
+  const fullScreenElement = document.fullscreenElement || document.webkitFullScreenElement
+
+  if (document.fullscreenElement) {
+    if (document.exitFullscreen) {
+      document.exitFullscreen()
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen()
+    }
+  } else {
+    if(renderContextCanvas.requestFullscreen) {
+      renderContextCanvas.requestFullscreen()
+    } else if (renderContextCanvas.webkitRequestFullscreen) {
+      renderContextCanvas.webkitRequestFullscreen()
+    }
+  }
+}
+window.addEventListener('dblclick', handleDblClick)
 window.addEventListener('resize', handleScreenResize)
 
 renderer.render(scene, camera)
