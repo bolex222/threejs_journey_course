@@ -28,27 +28,40 @@ const axesHelper = new THREE.AxesHelper()
 scene.add(axesHelper)
 
 //create a group
-const threeBoxGroup = new THREE.Group()
-scene.add(threeBoxGroup)
+//const threeBoxGroup = new THREE.Group()
+//scene.add(threeBoxGroup)
 
 //create 3 box for the group above
-const allBoxes = []
+//const allBoxes = []
 
-Array(3).fill(undefined).forEach((value, index) => {
-  const box = new THREE.Mesh(
-    new THREE.BoxGeometry(1, 1, 1),
-    new THREE.MeshBasicMaterial({ color: 0xff0000 })
-  )
-  box.position.x = index * 2
-  allBoxes.push(box)
-  threeBoxGroup.add(box)
-})
+// Array(3).fill(undefined).forEach((value, index) => {
+//   const box = new THREE.Mesh(
+//     new THREE.SphereGeometry(0.5, 32, 32),
+//       new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true })
+//   )
+//
+//   box.position.x = index * 2
+//   allBoxes.push(box)
+//   threeBoxGroup.add(box)
+// })
+const geometry = new THREE.BufferGeometry()
+const count = 100
+const positionsArray = new Float32Array(count * 3 * 3)
+for(let i = 0; i < count * 3 * 3; i++)
+{
+  positionsArray[i] = (Math.random() - 0.5) * 4
+}
+const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
+geometry.setAttribute('position', positionsAttribute)
 
-allBoxes.forEach(elem => {
-  elem.position.x += -allBoxes.length + 1
-})
+const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true }))
+scene.add(mesh)
 
-camera.lookAt(threeBoxGroup.position)
+// allBoxes.forEach(elem => {
+//   elem.position.x += -allBoxes.length + 1
+// })
+
+//camera.lookAt(threeBoxGroup.position)
 
 // create renderer
 const renderer = new THREE.WebGLRenderer({
@@ -98,6 +111,7 @@ const clock = new THREE.Clock()
 const tick = () => {
   controls.update()
   renderer.render(scene, camera)
+  //threeBoxGroup.rotation.y += 0.01
   window.requestAnimationFrame(tick)
 }
 tick()
@@ -124,7 +138,8 @@ const onMouseMove = event => {
   camera.position.y = cursor.y * 10
 
   //camera.position.set(-cursor.x * (2*Math.PI*camera.position.z), cursor.y * (2*Math.PI*camera.position.z))
-  camera.lookAt(threeBoxGroup.position)
+  //camera.lookAt(threeBoxGroup.position)
+  camera.lookAt(geometry)
 }
 
 //renderContextCanvas.addEventListener('mousemove', onMouseMove)
