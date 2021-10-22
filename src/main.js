@@ -1,75 +1,103 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import * as dat from 'dat.gui'
+
+import SHCCLogo from '../img/img.png'
+
 const renderContextCanvas = document.getElementById('render_context')
 const screenSize = { width: window.innerWidth, height: window.innerHeight }
 
-// create Scene
+/**
+ * GUI declaration
+ * @type {GUI}
+ */
+const gui = new dat.GUI()
+
+
+/**
+ * Scene declaration
+ */
 const scene = new THREE.Scene()
 
-// camera
+/**
+ * Camera declaration
+ */
 const aspectRatio = screenSize.width / screenSize.height
 const camera = new THREE.PerspectiveCamera(75, aspectRatio)
-// const camera = new THREE.OrthographicCamera(-aspectRatio, aspectRatio, 1, -1)
 scene.add(camera)
 camera.position.set(0, 0, 4)
 
-// Controls
 
+/**
+ * add control to the camera
+ */
 const controls = new OrbitControls(camera, renderContextCanvas)
 controls.enableDamping = true
-// controls.target.y = 1
-// controls.update()
 
 
-
-// Axes helper
+/**
+ * add some AxesHelper
+ */
 const axesHelper = new THREE.AxesHelper()
 scene.add(axesHelper)
 
-//create a group
-//const threeBoxGroup = new THREE.Group()
-//scene.add(threeBoxGroup)
 
-//create 3 box for the group above
-//const allBoxes = []
-
-// Array(3).fill(undefined).forEach((value, index) => {
-//   const box = new THREE.Mesh(
-//     new THREE.SphereGeometry(0.5, 32, 32),
-//       new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true })
-//   )
-//
-//   box.position.x = index * 2
-//   allBoxes.push(box)
-//   threeBoxGroup.add(box)
-// })
-const geometry = new THREE.BufferGeometry()
-const count = 100
-const positionsArray = new Float32Array(count * 3 * 3)
-for(let i = 0; i < count * 3 * 3; i++)
-{
-  positionsArray[i] = (Math.random() - 0.5) * 4
-}
-const positionsAttribute = new THREE.BufferAttribute(positionsArray, 3)
-geometry.setAttribute('position', positionsAttribute)
-
-const mesh = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true }))
+/**
+ * create the mesh
+ * and add it to the camera
+ */
+const geometry = new THREE.BoxGeometry(1, 1, 1)
+const material = new THREE.MeshBasicMaterial({ color: 0xffffff})
+const mesh = new THREE.Mesh(geometry, material)
 scene.add(mesh)
 
-// allBoxes.forEach(elem => {
-//   elem.position.x += -allBoxes.length + 1
-// })
+// debug
+gui.add(mesh.rotation, 'x', -3, 3, 0.1)
+gui.add(mesh.rotation, 'y', -3, 3, 0.1)
+gui.add(mesh.rotation, 'z', -3, 3, 0.1)
+gui.add(material, 'wireframe')
+gui.addColor({color: 0xffffff}, 'color')
+  .onChange((value) => {
+    material.color.set(value)
+})
 
-//camera.lookAt(threeBoxGroup.position)
 
-// create renderer
+/**
+ * createTexture
+ */
+const textureLoader = new THREE.TextureLoader()
+const texture = textureLoader.load(SHCCLogo)
+const img = new Image()
+img.src = SHCCLogo
+material.map = texture
+
+
+img.onload = () => {
+  texture.repeat.x = img.height / img.width
+  texture.offset.x = 0.315
+  texture.repeat.y = 1
+
+  gui.add(texture.offset, 'x', 0, 1, 0.01)
+}
+console.log(img)
+
+
+
+
+/**
+ * Render the Scene
+ */
 const renderer = new THREE.WebGLRenderer({
   canvas: renderContextCanvas
 })
 renderer.setSize(screenSize.width, screenSize.height)
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
+
+/**
+ * Resize and adapt Scene at screen resizing
+ */
 const handleScreenResize = () => {
   screenSize.height = window.innerHeight
   screenSize.width = window.innerWidth
@@ -79,6 +107,10 @@ const handleScreenResize = () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 }
 
+
+/**
+ * full screen at dbl click
+ */
 const handleDblClick = () => {
   const fullScreenElement = document.fullscreenElement || document.webkitFullscreenElement
 
@@ -96,18 +128,22 @@ const handleDblClick = () => {
     }
   }
 }
+
+/**
+ * Event Listeners
+ */
 window.addEventListener('dblclick', handleDblClick)
 window.addEventListener('resize', handleScreenResize)
 
+/**
+ * rendering
+ */
 renderer.render(scene, camera)
 
 
-// ANIMATION :
 /**
  * Animate
  */
-const clock = new THREE.Clock()
-
 const tick = () => {
   controls.update()
   renderer.render(scene, camera)
@@ -119,27 +155,3 @@ tick()
 
 
 // Move cube from mouse
-
-/**
- *
- * @param {MouseEvent}event
- */
-
-const cursor = {
-  x: 0,
-  y: 0
-}
-const onMouseMove = event => {
-  cursor.x = event.clientX / screenSize.width - 0.5
-  cursor.y = event.clientY / screenSize.height - 0.5
-
-  camera.position.x = Math.sin(-cursor.x * 2 * Math.PI) * 4
-  camera.position.z = Math.cos(-cursor.x * 2 * Math.PI) * 4
-  camera.position.y = cursor.y * 10
-
-  //camera.position.set(-cursor.x * (2*Math.PI*camera.position.z), cursor.y * (2*Math.PI*camera.position.z))
-  //camera.lookAt(threeBoxGroup.position)
-  camera.lookAt(geometry)
-}
-
-//renderContextCanvas.addEventListener('mousemove', onMouseMove)
