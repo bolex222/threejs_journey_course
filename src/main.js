@@ -1,6 +1,9 @@
 import './style.css'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import { FontLoader } from 'three/examples/jsm/loaders/FontLoader'
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry'
+// import { T } from 'three/examples/jsm/geometries/To'
 import * as dat from 'dat.gui'
 
 import SHCCLogo from '../img/img.png'
@@ -34,6 +37,7 @@ camera.position.set(0, 0, 4)
  */
 const controls = new OrbitControls(camera, renderContextCanvas)
 controls.enableDamping = true
+gui.add(controls, 'enableDamping')
 
 
 /**
@@ -44,45 +48,134 @@ scene.add(axesHelper)
 
 
 /**
- * create the mesh
- * and add it to the camera
+ * Create Meshes
  */
-const geometry = new THREE.BoxGeometry(1, 1, 1)
-const material = new THREE.MeshBasicMaterial({ color: 0xffffff})
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
+//const material = new THREE.MeshBasicMaterial({wireframe: false})
+// const material = new THREE.MeshNormalMaterial({wireframe: false})
+// const material = new THREE.MeshMatcapMaterial()
+//
+// const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 16), material)
+// const plane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), material)
+// const torus = new THREE.Mesh(new THREE.TorusGeometry(0.35, 0.15, 16, 32), material)
+// scene.add(sphere, plane, torus)
+//
+// sphere.position.x = -1.5
+// torus.position.x = 1.5
+// const clock = new THREE.Clock()
+//
+// const meshAnimation = () => {
+//   const elapsedTime = clock.getElapsedTime()
+//
+//   // Update objects
+//   sphere.rotation.y = 0.1 * elapsedTime
+//   plane.rotation.y = 0.1 * elapsedTime
+//   torus.rotation.y = 0.1 * elapsedTime
+//
+//   sphere.rotation.x = 0.15 * elapsedTime
+//   plane.rotation.x = 0.15 * elapsedTime
+//   torus.rotation.x = 0.15 * elapsedTime
+// }
 
 // debug
-gui.add(mesh.rotation, 'x', -3, 3, 0.1)
-gui.add(mesh.rotation, 'y', -3, 3, 0.1)
-gui.add(mesh.rotation, 'z', -3, 3, 0.1)
-gui.add(material, 'wireframe')
-gui.addColor({color: 0xffffff}, 'color')
-  .onChange((value) => {
-    material.color.set(value)
-})
+// gui.add(material, 'wireframe')
 
 
 /**
- * createTexture
+ * Textures
  */
 const textureLoader = new THREE.TextureLoader()
-const texture = textureLoader.load(SHCCLogo)
-const img = new Image()
-img.src = SHCCLogo
-material.map = texture
+//
+// const doorColorTexture = textureLoader.load('../img/textures/door/color.jpg')
+// const doorAlphaTexture = textureLoader.load('../img/textures/door/alpha.jpg')
+// const doorAmbientOcclusionTexture = textureLoader.load('../img/textures/door/ambientOcclusion.jpg')
+// const doorHeightTexture = textureLoader.load('../img/textures/door/height.jpg')
+// const doorNormalTexture = textureLoader.load('../img/textures/door/normal.jpg')
+// const doorMetalnessTexture = textureLoader.load('../img/textures/door/metalness.jpg')
+// const doorRoughnessTexture = textureLoader.load('../img/textures/door/roughness.jpg')
+// const gradientTexture = textureLoader.load('../img/textures/gradients/3.jpg')
+// //const matcapTexture = textureLoader.load('../img/textures/matcaps/1.png')
+// //const matcapTexture = textureLoader.load('../img/textures/matcaps/2.png')
+// //const matcapTexture = textureLoader.load('../img/textures/matcaps/3.png')
+// //const matcapTexture = textureLoader.load('../img/textures/matcaps/4.png')
+//const matcapTexture = textureLoader.load('../img/textures/matcaps/5.png')
+// //const matcapTexture = textureLoader.load('../img/textures/matcaps/6.png')
+// const matcapTexture = textureLoader.load('../img/textures/matcaps/7.png')
+const matcapTexture = textureLoader.load('../img/textures/matcaps/8.png')
+//
 
 
-img.onload = () => {
-  texture.repeat.x = img.height / img.width
-  texture.offset.x = 0.315
-  texture.repeat.y = 1
+// material.map = doorColorTexture
+//material.color = new THREE.Color('#f00')
+// material.transparent = true
+//material.opacity = 0.5
+// material.side = THREE.DoubleSide
+//
+// material.matcap = matcapTexture
 
-  gui.add(texture.offset, 'x', 0, 1, 0.01)
-}
-console.log(img)
+/**
+ * Text 3d
+ */
 
+const fontLoader = new FontLoader()
+//
+fontLoader.load('../fonts/NuitoSans_Bold.typeface.json', (font) => {
+  const textGeometry  = new TextGeometry('Three.js', {
+    font: font,
+    size: 0.5,
+    height: 0.2,
+    curveSegments: 6,
+    bevelEnabled: true,
+    bevelThickness: 0.03,
+    bevelSize: 0.02,
+    bevelOffset: 0,
+    bevelSegments: 4
+  })
+  textGeometry.computeBoundingBox()
+  console.log(textGeometry.boundingBox)
+  const { max, min } = textGeometry.boundingBox
+  // const width = max.x - min.x
+  // const depth = max.z - min.z
+  const textMaterial = new THREE.MeshMatcapMaterial()
+  const text = new THREE.Mesh(textGeometry, textMaterial)
+  textMaterial.matcap = matcapTexture
+  textMaterial.side = THREE.DoubleSide
+  // textGeometry.translate(
+  //   -width/2 + 2*textGeometry.parameters.options.bevelSize,
+  //   textGeometry.parameters.options.bevelSize,
+  //   -depth/2 + textGeometry.parameters.options.bevelSize
+  // )
+  textGeometry.center()
+  textGeometry.computeBoundingBox()
+  //gui.add(textMaterial, 'wireframe')
+  scene.add(text)
+  console.log(textGeometry.boundingBox)
 
+  const torusGeometry = new THREE.TorusGeometry(0.35, 0.15, 16, 32)
+  for (let i = 0; i < 200; i++) {
+    console.log('here')
+    const torus = new THREE.Mesh(torusGeometry, textMaterial)
+
+    const haha = Math.random() * 25
+    const hihi = Math.random() * 25
+    const x = Math.sin(haha) * hihi
+    const z = Math.cos(haha) * hihi
+    torus.position.set(
+      x,
+      Math.sin(Math.random() * 25) * Math.sqrt(-((x*x) + (z*z) - (25*25))),
+      z
+    )
+
+    const a = Math.random() * 360
+    torus.rotation.set(
+      a,a,a
+    )
+
+    const size = Math.random() * 2
+    torus.scale.set(size, size, size)
+    scene.add(torus)
+  }
+
+})
 
 
 /**
@@ -148,6 +241,7 @@ const tick = () => {
   controls.update()
   renderer.render(scene, camera)
   //threeBoxGroup.rotation.y += 0.01
+  //meshAnimation()
   window.requestAnimationFrame(tick)
 }
 tick()
