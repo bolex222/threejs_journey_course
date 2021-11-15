@@ -27,6 +27,7 @@ const resizeScreen = () => {
  * //@type {THREE.WebGLRenderer}
  */
 const renderer = new THREE.WebGLRenderer({canvas})
+renderer.shadowMap.enabled = true
 
 
 /**
@@ -54,62 +55,54 @@ new OrbitControls(camera, canvas)
  * objects
  */
 const plan = new THREE.PlaneGeometry(1000, 1000)
-const cube = new THREE.BoxGeometry()
-const torus = new THREE.TorusGeometry(0.35, 0.15, 16, 32)
 const sphere = new THREE.SphereGeometry(0.5)
 
-const materialRed = new THREE.MeshStandardMaterial({color: 'red', roughness: 0.4})
-const materialGreen = new THREE.MeshStandardMaterial({color: 'green', roughness: 0.4})
 const materialWhite = new THREE.MeshStandardMaterial()
 materialWhite.roughness = 0.4
-materialGreen.side = THREE.DoubleSide
 
 const planMesh = new THREE.Mesh(plan, materialWhite)
-const cubeMesh = new THREE.Mesh(cube, materialWhite)
-const torusMesh = new THREE.Mesh(torus, materialWhite)
 const sphereMesh = new THREE.Mesh(sphere, materialWhite)
+
+sphereMesh.castShadow = true
+planMesh.receiveShadow = true
 
 planMesh.position.y = -2
 planMesh.rotation.x = -0.5 * Math.PI
-cubeMesh.position.x = 2
-sphereMesh.position.x = -2
 
-scene.add(planMesh, cubeMesh, torusMesh, sphereMesh)
+scene.add(planMesh, sphereMesh)
 
 
 /**
  * Lights
  */
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.5)
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
+ambientLight.position.set(2, 2, 0)
+gui.add(ambientLight, 'intensity').min(0).max(1).step(0.001)
 scene.add(ambientLight)
+
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.3)
-//scene.add(directionalLight)
-const light = new THREE.HemisphereLight(0xff0000, 0x0000ff, 0.3)
-//scene.add(light)
-const pointLight = new THREE.PointLight(0xff9000, 0.5, 10, 2)
-//pointLight.position.y = -1
-pointLight.position.set(0, - 1, 0)
-//scene.add(pointLight)
-light.position.set(1, 0.25, 0)
+directionalLight.position.set(2,2,0)
+directionalLight.castShadow = true
+directionalLight.shadow.mapSize.width = 1024
+directionalLight.shadow.mapSize.height = 1024
 
-const rectLight = new THREE.RectAreaLight(0xff0000, 0.5, 0.5, 0.5)
-rectLight.position.set(sphereMesh.position.x, -0.5, sphereMesh.position.z)
-rectLight.lookAt(sphereMesh.position)
-scene.add(rectLight)
+directionalLight.shadow.camera.near = 1
+directionalLight.shadow.camera.far = 7
+directionalLight.shadow.camera.right = 2
+directionalLight.shadow.camera.left = -2
+directionalLight.shadow.camera.top = 2
+directionalLight.shadow.camera.bottom = -2
 
-const spotLight = new THREE.SpotLight(0xff00ff, 0.5)
-scene.add(spotLight)
-spotLight.position.x = 5
+directionalLight.shadow.radius = 20
+scene.add(directionalLight)
 
-const spotLightHelper = new THREE.SpotLightHelper(spotLight)
-scene.add(spotLightHelper)
+const directionalLightShadowCameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera)
+scene.add(directionalLightShadowCameraHelper)
 
-//spotLight.position.x = 5
-//spotLight.target.position.set(3, 3, 3)
-scene.add(spotLight.target)
-
-gui.add(light, 'intensity').min(0).max(1).step(0.001)
+const directionalLightHelper = new THREE.DirectionalLightHelper(directionalLight, 1, 0xff0000)
+scene.add(directionalLightHelper)
+gui.add(directionalLight, 'intensity').min(0).max(1).step(0.001)
 
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 window.addEventListener('resize', resizeScreen)
@@ -120,7 +113,9 @@ const tick = () => {
   renderer.setSize(size.width, size.height)
   camera.aspect = size.width /size.height
   const timeSince = clock.getElapsedTime()
-  //light.position.set(Math.sin(timeSince) * 2, 3, Math.cos(timeSince) * 2)
+
+  //directionalLight.position.set(2 * Math.sin(timeSince / 2), 2, 2*Math.cos(timeSince / 2))
+  directionalLightHelper.update()
 
 
   renderer.render(scene, camera)
