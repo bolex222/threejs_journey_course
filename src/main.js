@@ -1,19 +1,12 @@
 import * as THREE from 'three'
-import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
 import { GUI } from 'dat.gui'
 
 import './style.css'
-import { BoxGeometry, MeshStandardMaterial } from 'three'
 
 const canvas = document.getElementById('render_context')
 
 const gui = new GUI()
-
-/**
- * Colors
- */
-const bgColor = '#1d202d'
-const floorColor = '#3d3f32'
 
 
 /**
@@ -28,10 +21,7 @@ const size = {
  * renderer
  * //@type {THREE.WebGLRenderer}
  */
-const renderer = new THREE.WebGLRenderer({canvas})
-renderer.shadowMap.enabled = true
-renderer.setClearColor(bgColor)
-
+const renderer = new THREE.WebGLRenderer({ canvas })
 
 /**
  * Scene
@@ -45,209 +35,153 @@ scene.add(new THREE.AxesHelper())
  * /@type {THREE.Camera}
  */
 const camera = new THREE.PerspectiveCamera(75, size.width / size.height, 0.1, 1000)
-camera.position.x = 0.4307483315251566
-camera.position.y = 0.9248873680385761
-camera.position.z = 1.3667393607577953
+//camera.lookAt(0, 0, 0)
+camera.position.z = 3
 
-/**
- *
- * @type {dat.gui.GUI}
- */
-const cameraFolder = gui.addFolder('Camera')
-cameraFolder.add(camera.position, 'x').color = 0xff000
-cameraFolder.add(camera.position, 'y').color = '#ff000'
-cameraFolder.add(camera.position, 'z').color = '#ff000'
+const lookAtCenter = () => {
+  camera.lookAt(0, 0, 0)
+  camera.updateProjectionMatrix()
+}
 
 
 const resizeScreen = () => {
-  console.log('resize')
   size.width = window.innerWidth
   size.height = window.innerHeight
-  camera.aspect = size.width /size.height
+  camera.aspect = size.width / size.height
+  camera.updateProjectionMatrix()
 }
+
 
 /**
  * Control
  */
 const control = new OrbitControls(camera, canvas)
-control.addEventListener('change', () => {gui.updateDisplay()})
-
-/**
- * Fog
- */
-
-const fog = new THREE.Fog(bgColor, 1, 10)
-scene.fog = fog
+//control.addEventListener('change', () => {gui.updateDisplay()})
 
 
-/**
- * Textures
- */
 const textureLoader = new THREE.TextureLoader()
-const textureDoorAlpha = textureLoader.load('/img/textures/door/alpha.jpg')
-const textureDoorAmbientOcclusion = textureLoader.load('/img/textures/door/ambientOcclusion.jpg')
-const textureDoorColor = textureLoader.load('/img/textures/door/color.jpg')
-const textureDoorHeight = textureLoader.load('/img/textures/door/height.jpg')
-const textureDoorMetalness = textureLoader.load('/img/textures/door/metalness.jpg')
-const textureDoorNormal = textureLoader.load('/img/textures/door/normal.jpg')
-const textureDoorRoughness = textureLoader.load('/img/textures/door/roughness.jpg')
-
-const textureBrickColor = textureLoader.load('/img/textures/bricks/color.jpg')
-const textureBrickNormal = textureLoader.load('/img/textures/bricks/normal.jpg')
-const textureBrickRoughness = textureLoader.load('/img/textures/bricks/roughness.jpg')
-const textureBrickAmbient = textureLoader.load('/img/textures/bricks/ambientOcclusion.jpg')
-
-const textureGrassColor = textureLoader.load('/img/textures/grass/color.jpg')
-const textureGrassNormal = textureLoader.load('/img/textures/grass/normal.jpg')
-const textureGrassRoughness = textureLoader.load('/img/textures/grass/roughness.jpg')
-const textureGrassAmbient = textureLoader.load('/img/textures/grass/ambientOcclusion.jpg')
-
-textureGrassColor.repeat.set(32,32)
-textureGrassNormal.repeat.set(32,32)
-textureGrassRoughness.repeat.set(32,32)
-textureGrassAmbient.repeat.set(32,32)
-
-textureGrassColor.wrapS = textureGrassColor.wrapT = true
-textureGrassNormal.wrapS = textureGrassNormal.wrapT = true
-textureGrassRoughness.wrapS = textureGrassRoughness.wrapT = true
-textureGrassAmbient.wrapS = textureGrassAmbient.wrapT = true
+const texture = textureLoader.load('./img/textures/particles/4.png')
 
 
 /**
- * Ghost
+ * galaxy
  */
-const ghost = new THREE.PointLight(0xff00ff, 1, 3)
-ghost.position.set(2, 2, 2)
-ghost.castShadow = true
-scene.add(ghost)
 
-const ghostHelper = new THREE.PointLightHelper(ghost)
-//scene.add(ghostHelper)
+const parameter = {
+  galaxySize: 100,
+  starSize: 1,
+  numberOfStars: 10000,
+  numberOfBranch: 7,
+  torsion: 1,
+  starColor: '#ffffff',
+  amplitude: 0.3,
+  reverse: true,
+  flat: true
+}
 
-
-
-/**
- * objects
- */
-const greyBasicMaterial = new THREE.MeshStandardMaterial({
-  color: '#7B8491',
-  wireframe: false})
-gui.add(greyBasicMaterial, 'wireframe')
-const house = new THREE.Group()
-
-const planeGeometry = new THREE.PlaneGeometry(100, 100)
-const floorMAterial = new MeshStandardMaterial({
-  map: textureGrassColor,
-  normalMap: textureGrassNormal,
-  roughnessMap: textureGrassRoughness,
-  aoMap: textureGrassAmbient
+const galaxyGeometry = new THREE.BufferGeometry()
+const galaxyMaterial = new THREE.PointsMaterial({
+  transparent: true,
+  alphaMap: texture,
+  depthWrite: false,
+  vertexColors: true
 })
-const plane = new THREE.Mesh(planeGeometry, floorMAterial)
-plane.receiveShadow = true
-plane.geometry.setAttribute('uv2', new THREE.Float32BufferAttribute(plane.geometry.attributes.uv.array, 2))
-plane.rotation.x = - Math.PI / 2
-scene.add(plane)
+const galaxy = new THREE.Points(galaxyGeometry, galaxyMaterial)
+//galaxy.rotation.z = Math.PI / 8
+scene.add(galaxy)
 
-const houseBlockGeometry = new THREE.BoxGeometry(2, 1, 2)
-const houseBlock = new THREE.Mesh(houseBlockGeometry,
-  new THREE.MeshStandardMaterial({
-    map: textureBrickColor,
-    normalMap: textureBrickNormal,
-    aoMap: textureBrickAmbient,
-    roughnessMap: textureBrickRoughness
-  }))
-houseBlock.receiveShadow = true
-houseBlock.castShadow = true
-houseBlock.geometry.setAttribute('uv2', new THREE.Float32BufferAttribute(houseBlock.geometry.attributes.uv.array, 2))
-houseBlock.position.y = houseBlock.geometry.parameters.height / 2
-house.add(houseBlock)
+function randn_bm () {
+  let u = 0, v = 0
+  while (u === 0) u = Math.random() //Converting [0,1) to (0,1)
+  while (v === 0) v = Math.random()
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v)
+}
 
-const roofGeometry = new THREE.ConeGeometry(1.7, 0.5, 4)
-const roof = new THREE.Mesh(roofGeometry,
-  new THREE.MeshStandardMaterial({color: '#b4843b'}))
-roof.position.y = 1 + roofGeometry.parameters.height / 2
-roof.rotation.y = Math.PI / 4
-roof.receiveShadow = true
-roof.castShadow = true
-house.add(roof)
+const generateGalaxy = () => {
+  galaxyMaterial.dispose()
+  galaxyGeometry.dispose()
+  const arrayOfVertices = []
+  const arrayOfVerticesColor = []
+  const arrayOfVerticesSize = []
+  const colors = [
+    [191, 190, 125],
+    [5, 3, 255],
+    []
+  ]
+  for (let i = 0; i < 3; i++) {
+    colors[2].push((colors[0][i] - colors[1][i]) / parameter.galaxySize)
+  }
+  const angle = (2 * Math.PI) / parameter.numberOfBranch
+  for (let i = 0; i < parameter.numberOfBranch; i++) {
+    for (let j = 0; j < parameter.numberOfStars / parameter.numberOfBranch; j++) {
+      const rand = Math.random() * parameter.galaxySize
+      const point = [
+        Math.sin(angle * (1 + i + rand * (parameter.reverse ? -1 : 1) * (parameter.torsion / 100))) * rand + (randn_bm() * parameter.amplitude * (parameter.galaxySize / 10)),
+        parameter.flat ? 0 : (randn_bm() * parameter.amplitude * (parameter.galaxySize / 10)),
+        Math.cos(angle * (1 + i + rand * (parameter.reverse ? -1 : 1) * (parameter.torsion / 100))) * rand + (randn_bm() * parameter.amplitude * (parameter.galaxySize / 10)) * 3
+      ]
+      arrayOfVertices.push(...point)
+      let distanceToCenter = Math.ceil(Math.sqrt(Math.pow(point[0], 2) + Math.pow(point[1], 2) + Math.pow(point[2], 2)))
+      if (distanceToCenter > parameter.galaxySize) {distanceToCenter = parameter.galaxySize}
+      for (let i = 0; i < 3; i++) {
+        arrayOfVerticesColor.push((colors[0][i] - (distanceToCenter * colors[2][i]))/255)
+      }
+      // if (i % 10 === 0) {
+      //   console.log('//////////////')
+      //   console.log(distanceToCenter)
+      //   console.log(arrayOfVerticesColor[arrayOfVerticesColor.length -1], arrayOfVerticesColor[arrayOfVerticesColor.length -2], arrayOfVerticesColor[arrayOfVerticesColor.length -3])
+      // }
+      arrayOfVerticesSize.push(Math.random() * 100)
+    }
+  }
+  const buffer = new Float32Array(arrayOfVertices)
+  const sizeBuffer = new Float32Array(arrayOfVerticesSize)
+  const colorBuffer = new Float32Array(arrayOfVerticesColor)
+  console.log(arrayOfVerticesColor)
+  galaxyGeometry.setAttribute('position', new THREE.BufferAttribute(buffer, 3))
+  // galaxyGeometry.setAttribute('size', new THREE.BufferAttribute(sizeBuffer, 1))
+  galaxyGeometry.setAttribute('color', new THREE.BufferAttribute(colorBuffer, 3))
+  //galaxyMaterial.size = parameter.starSize
+  //galaxyMaterial.color = new THREE.Color(parameter.starColor)
+}
 
-const doorGeometry = new THREE.PlaneGeometry(0.8, 0.8, 100, 100)
-const door = new THREE.Mesh(doorGeometry,
-  new THREE.MeshStandardMaterial({
-    map: textureDoorColor,
-    transparent: true,
-    alphaMap: textureDoorAlpha,
-    displacementMap: textureDoorHeight,
-    displacementScale: 0.05,
-    metalnessMap: textureDoorMetalness,
-    roughnessMap: textureDoorRoughness,
-    aoMap: textureDoorAmbientOcclusion,
-    normalMap: textureDoorNormal
-  }))
-door.geometry.setAttribute('uv2', new THREE.Float32BufferAttribute(door.geometry.attributes.uv.array, 2))
-door.position.z = 0.99
-door.position.y = 0.36
-house.add(door)
-
-scene.add(house)
+gui.add(parameter, 'numberOfStars').onChange(generateGalaxy)
+gui.add(parameter, 'galaxySize').onChange(generateGalaxy)
+gui.add(parameter, 'starSize').onChange(generateGalaxy)
+gui.add(parameter, 'numberOfBranch').min(1).max(10).onChange(generateGalaxy)
+gui.add(parameter, 'reverse').onChange(generateGalaxy)
+gui.add(parameter, 'flat').onChange(generateGalaxy)
+gui.add(parameter, 'torsion').min(0).max(10).onChange(generateGalaxy)
+gui.add(parameter, 'amplitude').min(0).max(10).onChange(generateGalaxy)
+gui.addColor(parameter, 'starColor').onChange(generateGalaxy)
+gui.add({ generateGalaxy }, 'generateGalaxy')
+gui.add({ lookAtCenter }, 'lookAtCenter').onChange(generateGalaxy)
 
 
 /**
  * Light
  */
 const ambientLight = new THREE.AmbientLight('#303044', 0.3)
-ambientLight.position.y = 4
-scene.add(ambientLight)
-gui.add(ambientLight, 'intensity', 0, 10)
+//scene.add(ambientLight)
 
-const pointLight = new THREE.PointLight('#7e6c32')
-pointLight.position.set(0, 0.85, 1.1)
-scene.add(pointLight)
-pointLight.castShadow = true
-gui.add(pointLight, 'intensity', 0, 5)
-
-const pointLightHelper = new THREE.PointLightHelper(pointLight, 1, 0xff0000)
-// scene.add(pointLightHelper)
-
-
-/**
- * grave stone
- */
-const graveMaterial = new MeshStandardMaterial({
-  color: '#78787c'
-})
-
-const coordList = []
-const graveGeometry = new BoxGeometry(0.3, 0.6, 0.1)
-for (let i = 0; i < 50; i++){
-  const grave = new THREE.Mesh(graveGeometry, graveMaterial)
-  const rand1 = Math.random() * Math.PI * 2
-  const rand2 = Math.random() * 5 + 2.5
-  const temp = {x: Math.ceil(Math.sin(rand1) * rand2), z: Math.ceil(Math.cos(rand1) * rand2)}
-  const test = coordList.find(e => e.x === temp.x && e.z === temp.z)
-  if (!test) {
-    coordList.push(temp)
-    grave.position.x = temp.x
-    grave.position.z = temp.z
-    grave.rotation.y = Math.random() * 2 * Math.PI
-    grave.rotation.z = Math.random() *  - 0.5
-    grave.receiveShadow = true
-    grave.castShadow = true
-    scene.add(grave)
-  }
-}
 
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 window.addEventListener('resize', resizeScreen)
+//const clock = new THREE.Clock()
+
+window.addEventListener('dblclick', () => {
+  document.body.requestFullscreen()
+})
+
 const clock = new THREE.Clock()
 
 const tick = () => {
+  //console.log('la')
   renderer.setSize(size.width, size.height)
-  const timeSince = clock.getElapsedTime()
+  // const timeSince = clock.getElapsedTime()
+  // galaxy.rotation.y = timeSince
 
-  ghost.position.set(Math.sin(timeSince) * 2, Math.sin(timeSince * 2) + 1, Math.cos(timeSince) * 2)
-
-
+  //ghost.position.set(Math.sin(timeSince) * 2, Math.sin(timeSince * 2) + 1, Math.cos(timeSince) * 2)
   control.update()
   renderer.render(scene, camera)
   window.requestAnimationFrame(tick)
