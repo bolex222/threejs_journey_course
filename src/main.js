@@ -67,7 +67,7 @@ const control = new OrbitControls(camera, canvas)
 
 
 const geometry = new THREE.SphereGeometry(0.5, 32, 32)
-const materials = [new THREE.MeshBasicMaterial({color: 'green'}) ,new THREE.MeshBasicMaterial({color: 'green'}), new THREE.MeshBasicMaterial({color: 'green'})]
+const materials = [new THREE.MeshBasicMaterial({color: '#ff0000'}) ,new THREE.MeshBasicMaterial({color: '#ff0000'}), new THREE.MeshBasicMaterial({color: '#ff0000'})]
 const meshes = []
 
 for (let i = 0; i < 3; i++) {
@@ -81,8 +81,34 @@ meshes[0].position.y = 2
 /**
  * RayCaster
  */
-const raycaster = new THREE.Raycaster()
+const rayCaster = new THREE.Raycaster()
 
+
+// Ray from left to right
+const rayCasterOrigin = new THREE.Vector3(-3, 0, 0)
+const direction = new THREE.Vector3(3, 0, 0)
+direction.normalize()
+rayCaster.set(rayCasterOrigin, direction)
+
+
+
+
+// System that auto change color at rayCast trigger
+const blueMaterial = new THREE.MeshBasicMaterial({color: '#0000ff'})
+const redMaterial = new THREE.MeshBasicMaterial({color: '#ff0000'})
+
+const checkRayCasterForColors = () => {
+  const intersect = rayCaster.intersectObjects(meshes)
+  meshes.forEach(el => {
+    if (el.material.color.b === 1) {
+      el.material = redMaterial
+    }
+  })
+  //console.log(intersect)
+  intersect.forEach(el => {
+   el.object.material = blueMaterial
+  })
+}
 
 
 
@@ -116,7 +142,7 @@ const tick = () => {
   const dest = new THREE.Vector3(mousePosition.x, mousePosition.y,camera.position.z - 1000)
   dest.normalize()
 
-  raycaster.setFromCamera(mousePosition, camera)
+  // checkRayCasterForColors()
 
   control.update()
   renderer.render(scene, camera)
